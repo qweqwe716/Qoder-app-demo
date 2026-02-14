@@ -46,6 +46,17 @@ class AIController {
         return false;
     }
 
+    // 获取当前实际使用的策略（考虑保命策略的长度限制）
+    getEffectiveStrategy() {
+        // 保命策略需要长度大于50才能使用
+        if (this.strategy === 'survival' && this.snake.getLength() <= 50) {
+            // 长度不足时，随机使用其他策略
+            const fallbackStrategies = ['length', 'aggressive', 'item'];
+            return fallbackStrategies[Math.floor(Math.random() * fallbackStrategies.length)];
+        }
+        return this.strategy;
+    }
+
     // 生成随机步数阈值 8~16步
     randomStepsThreshold() {
         return 8 + Math.floor(Math.random() * 9); // 8~16步
@@ -494,7 +505,10 @@ class AIController {
 
     // 获取策略权重
     getStrategyWeights() {
-        switch (this.strategy) {
+        // 使用实际生效的策略（考虑保命策略的长度限制）
+        const effectiveStrategy = this.getEffectiveStrategy();
+        
+        switch (effectiveStrategy) {
             case 'survival': // 保命优先：空间>风险>食物>道具>进攻
                 return { space: 3, risk: 3, food: 1, item: 0.5, attack: 0 };
             case 'length': // 长度优先：食物>空间>风险>道具>进攻
