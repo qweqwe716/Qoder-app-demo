@@ -23,12 +23,27 @@ class AIController {
         this.lastPositions = []; // 记录最近的位置
         this.maxPositionHistory = 4; // 记录最近4个位置
         this.circleDetectionCount = 0; // 检测到转圈的次数
+        
+        // 策略切换计时
+        this.strategySwitchInterval = 5000; // 5秒切换一次策略
+        this.lastStrategySwitchTime = Date.now();
     }
 
     // 随机分配AI策略
     randomStrategy() {
         const strategies = ['survival', 'length', 'aggressive', 'item'];
         return strategies[Math.floor(Math.random() * strategies.length)];
+    }
+
+    // 检查并切换策略
+    checkAndSwitchStrategy() {
+        const now = Date.now();
+        if (now - this.lastStrategySwitchTime >= this.strategySwitchInterval) {
+            this.strategy = this.randomStrategy();
+            this.lastStrategySwitchTime = now;
+            return true; // 返回true表示已切换
+        }
+        return false;
     }
 
     // 生成随机步数阈值 8~16步
@@ -212,6 +227,9 @@ class AIController {
     // 新增：8~16步内必须获取道具或食物
     getNextMove() {
         if (!this.snake.alive) return null;
+        
+        // 检查是否需要切换策略（每5秒）
+        this.checkAndSwitchStrategy();
         
         const head = this.snake.getHead();
         const foods = this.foodManager.getFoods();
