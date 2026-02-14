@@ -263,7 +263,13 @@ class AIController {
         this.stepsSinceLastGain++;
         
         // 检查是否超过步数阈值（8~16步）
-        const needForceGet = this.checkStepsThreshold();
+        let needForceGet = this.checkStepsThreshold();
+        
+        // 检查场上是否只有1个存活玩家，如果是则强制进食
+        const aliveCount = this.allSnakes.filter(s => s.alive).length;
+        if (aliveCount === 1) {
+            needForceGet = true;
+        }
         
         // 检测是否在转圈
         const isCircling = this.isCircling();
