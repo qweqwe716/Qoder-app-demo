@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇大作战 - Snake Battle</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- 标题 -->
+        <header class="game-header">
+            <h1>🐍 贪吃蛇大作战</h1>
+            <div class="game-stats">
+                <span id="game-timer">时间: 00:00</span>
+                <span id="grid-info">格子: 120×120</span>
+                <span id="alive-count">存活: 0/0</span>
+                <span id="shrink-timer">缩圈: --</span>
+            </div>
+        </header>
+
+        <!-- 主游戏区域 -->
+        <div class="main-area">
+            <!-- 玩家状态面板 -->
+            <aside class="players-panel" id="players-panel">
+                <div class="players-list" id="players-list">
+                    <!-- 动态生成玩家状态 -->
+                </div>
+            </aside>
+
+            <!-- 游戏画布 -->
+            <div class="game-board-container">
+                <canvas id="game-canvas" width="600" height="600"></canvas>
+                <div class="game-overlay" id="game-overlay">
+                    <div class="overlay-content">
+                        <h2 id="overlay-title">游戏暂停</h2>
+                        <p id="overlay-message">按空格键继续</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 控制按钮 -->
+        <div class="game-controls">
+            <button id="btn-start" class="btn btn-primary">开始游戏</button>
+            <button id="btn-pause" class="btn btn-secondary" disabled>暂停</button>
+            <button id="btn-config" class="btn btn-secondary">游戏配置</button>
+            <button id="btn-sound" class="btn btn-icon">🔊</button>
+        </div>
+
+        <!-- 移动端虚拟方向键 -->
+        <div class="mobile-controls" id="mobile-controls">
+            <button class="d-toggle" id="d-toggle">🎮 显示控制</button>
+            <div class="d-pad" id="d-pad" style="display: none;">
+                <button class="d-btn d-up" data-dir="up">▲</button>
+                <div class="d-middle">
+                    <button class="d-btn d-left" data-dir="left">◀</button>
+                    <button class="d-btn d-center" id="d-close">✕</button>
+                    <button class="d-btn d-right" data-dir="right">▶</button>
+                </div>
+                <button class="d-btn d-down" data-dir="down">▼</button>
+            </div>
+        </div>
+
+        <!-- 配置模态框 -->
+        <div class="modal" id="config-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>游戏配置</h2>
+                    <button class="modal-close" id="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- 玩家数量选择 -->
+                    <div class="config-section">
+                        <h3>玩家数量</h3>
+                        <div class="config-item">
+                            <label for="player-count">选择人数 (2-12)</label>
+                            <input type="range" id="player-count" min="2" max="12" value="6">
+                            <span id="player-count-value">6</span>
+                        </div>
+                    </div>
+
+                    <!-- 玩家配置 -->
+                    <div class="config-section">
+                        <h3>玩家设置</h3>
+                        <div class="player-configs" id="player-configs">
+                            <!-- 动态生成玩家配置 -->
+                        </div>
+                    </div>
+
+                    <!-- 游戏参数配置 -->
+                    <div class="config-section">
+                        <h3>游戏参数</h3>
+                        <div class="config-item">
+                            <label for="initial-grid-size">初始格子数 (6-120)</label>
+                            <input type="range" id="initial-grid-size" min="6" max="120" value="30" step="1">
+                            <span id="grid-size-value">30</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="upgrade-interval">缩圈时间 (秒)</label>
+                            <input type="range" id="upgrade-interval" min="3" max="30" value="15" step="1">
+                            <span id="upgrade-value">15秒</span>
+                        </div>
+                        <div class="config-item">
+                            <label for="game-speed">游戏速度</label>
+                            <select id="game-speed">
+                                <option value="1">x1 (慢速)</option>
+                                <option value="2">x2</option>
+                                <option value="3">x3</option>
+                                <option value="4">x4</option>
+                                <option value="5">x5</option>
+                                <option value="6" selected>x6 (正常)</option>
+                                <option value="7">x7</option>
+                                <option value="8">x8</option>
+                                <option value="9">x9</option>
+                                <option value="10">x10 (极速)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="btn-save-config" class="btn btn-primary">保存配置</button>
+                    <button id="btn-reset-config" class="btn btn-secondary">重置默认</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏说明 -->
+        <div class="game-instructions">
+            <div class="instructions-header" id="instructions-header">
+                <h3>操作说明</h3>
+                <span class="instructions-toggle" id="instructions-toggle">▼</span>
+            </div>
+            <div class="instructions-content" id="instructions-content">
+                <div class="instructions-grid">
+                    <div class="instruction-item">
+                        <span class="key">WASD</span>
+                        <span>玩家1移动</span>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="key">方向键</span>
+                        <span>玩家2移动</span>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="key">空格</span>
+                        <span>暂停/继续</span>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="key">P</span>
+                        <span>切换自动/手动</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音效文件（使用Base64内嵌简单音效） -->
+    <script src="js/audio.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/snake.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/food.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

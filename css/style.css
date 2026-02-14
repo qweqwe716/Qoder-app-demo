@@ -1,0 +1,940 @@
+/* 暗黑风格贪吃蛇游戏样式 */
+
+:root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-tertiary: #1a1a2e;
+    --accent-primary: #00ff88;
+    --accent-secondary: #00d4ff;
+    --accent-danger: #ff4757;
+    --accent-warning: #ffa502;
+    --text-primary: #e0e0e0;
+    --text-secondary: #888;
+    --border-color: #2a2a3e;
+    --grid-line: #1e1e2e;
+    --glow-primary: 0 0 10px rgba(0, 255, 136, 0.5);
+    --glow-secondary: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+/* 游戏容器 - 控制在80%高度 */
+.game-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px 20px;
+    height: 80vh;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 头部 */
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.game-header h1 {
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+}
+
+.game-stats {
+    display: flex;
+    gap: 20px;
+    font-size: 1.1rem;
+}
+
+.game-stats span {
+    padding: 8px 16px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+/* 主游戏区域 */
+.main-area {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* 玩家面板 */
+.players-panel {
+    width: 200px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: 100%;
+}
+
+/* 玩家列表面板 */
+.players-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.players-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.players-list::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+}
+
+.players-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.players-list::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-secondary);
+}
+
+.player-status {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.player-status:last-child {
+    margin-bottom: 0;
+}
+
+/* 死亡玩家排在末尾 */
+.player-status.dead {
+    order: 1;
+    opacity: 0.4;
+}
+
+.player-status.alive {
+    order: 0;
+}
+
+.player-status.alive {
+    border-left-color: var(--accent-primary);
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
+}
+
+.player-status.dead {
+    border-left-color: var(--accent-danger);
+    opacity: 0.6;
+}
+
+.player-status.ai-mode {
+    background: linear-gradient(135deg, var(--bg-tertiary), rgba(0, 212, 255, 0.1));
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.player-name {
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.player-type {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg-secondary);
+}
+
+.player-type.human {
+    color: var(--accent-secondary);
+}
+
+.player-type.ai {
+    color: var(--accent-warning);
+}
+
+.player-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.player-hp {
+    color: var(--accent-primary);
+    font-weight: bold;
+}
+
+.player-status-text {
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.player-status-text.alive {
+    color: var(--accent-primary);
+    background: rgba(0, 255, 136, 0.1);
+}
+
+.player-status-text.dead {
+    color: var(--accent-danger);
+    background: rgba(255, 71, 87, 0.1);
+}
+
+/* 游戏画布容器 */
+.game-board-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+
+#game-canvas {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    height: 100%;
+    max-width: 600px;
+    max-height: 600px;
+    display: block;
+    object-fit: contain;
+}
+
+/* 游戏遮罩层 */
+.game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10, 10, 15, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.game-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.overlay-content {
+    text-align: center;
+}
+
+.overlay-content h2 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.overlay-content p {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+}
+
+/* 控制按钮 */
+.game-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent-primary), #00cc6a);
+    color: #000;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-primary);
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--border-color);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-icon {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    font-size: 1.2rem;
+}
+
+.btn-icon:hover {
+    background: var(--border-color);
+}
+
+.btn-icon.muted {
+    opacity: 0.5;
+}
+
+/* 模态框 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: 50vh;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* 配置区域 */
+.config-section {
+    margin-bottom: 25px;
+}
+
+.config-section:last-child {
+    margin-bottom: 0;
+}
+
+.config-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: var(--accent-secondary);
+}
+
+/* 玩家配置 */
+.player-configs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.player-config-item {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.player-config-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.player-color-preview {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+}
+
+.player-config-header span {
+    font-weight: bold;
+}
+
+.player-config-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.player-config-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.player-config-options input[type="radio"] {
+    accent-color: var(--accent-primary);
+}
+
+/* 配置项 */
+.config-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.config-item:last-child {
+    margin-bottom: 0;
+}
+
+.config-item label {
+    min-width: 150px;
+    font-size: 0.95rem;
+}
+
+.config-item input[type="range"] {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    outline: none;
+}
+
+.config-item input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: var(--glow-primary);
+}
+
+.config-item select {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.config-item span {
+    min-width: 60px;
+    text-align: right;
+    color: var(--accent-secondary);
+}
+
+/* 游戏说明 */
+.game-instructions {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.instructions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s ease;
+}
+
+.instructions-header:hover {
+    background: var(--bg-tertiary);
+}
+
+.instructions-header h3 {
+    font-size: 1rem;
+    color: var(--accent-secondary);
+    margin: 0;
+}
+
+.instructions-toggle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+}
+
+.instructions-toggle.expanded {
+    transform: rotate(180deg);
+}
+
+.instructions-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.instructions-content.expanded {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.instructions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 10px 15px;
+}
+
+.instruction-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.key {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+    color: var(--accent-secondary);
+}
+
+/* 响应式设计 */
+@media (max-width: 900px) {
+    .main-area {
+        flex-direction: column;
+    }
+    
+    .players-panel {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .player-status {
+        margin-bottom: 0;
+    }
+    
+    .instructions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .player-configs {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+    body {
+        overflow: auto;
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .game-container {
+        height: auto;
+        max-height: none;
+        padding: 5px 10px;
+    }
+    
+    .game-header {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 5px 0;
+    }
+    
+    .game-header h1 {
+        font-size: 1.2rem;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .game-stats {
+        width: 100%;
+        justify-content: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        flex-wrap: wrap;
+    }
+    
+    .game-stats span {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+    
+    .main-area {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    /* 玩家面板横向滚动 */
+    .players-panel {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 8px;
+        padding: 8px;
+        max-height: none;
+        order: 2;
+    }
+    
+    .players-list {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex: none;
+    }
+    
+    .player-status {
+        min-width: 120px;
+        max-width: 150px;
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+    
+    .player-header {
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .player-name {
+        font-size: 0.85rem;
+    }
+    
+    .player-stats {
+        flex-direction: column;
+        gap: 2px;
+        font-size: 0.75rem;
+    }
+    
+    /* 游戏区优先显示 */
+    .game-board-container {
+        order: 1;
+        min-height: 300px;
+        max-height: 50vh;
+        padding: 5px;
+    }
+    
+    #game-canvas {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        min-width: 280px;
+        min-height: 280px;
+    }
+    
+    /* 控制区 */
+    .controls-section {
+        order: 3;
+    }
+    
+    .control-buttons {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .control-buttons button {
+        flex: 1;
+        min-width: 80px;
+        padding: 10px 8px;
+        font-size: 0.85rem;
+    }
+    
+    /* 操作说明折叠 */
+    .instructions-section {
+        order: 4;
+    }
+    
+    .instructions-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .instruction-item {
+        font-size: 0.75rem;
+    }
+    
+    .key {
+        padding: 2px 6px;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .player-configs {
+        grid-template-columns: 1fr;
+    }
+    
+    .instructions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 380px) {
+    .game-stats span {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+    }
+    
+    .player-status {
+        min-width: 100px;
+    }
+    
+    #game-canvas {
+        min-width: 240px;
+        min-height: 240px;
+    }
+}
+
+/* 移动端虚拟方向键 - 默认隐藏 */
+.mobile-controls {
+    display: none;
+}
+
+/* 移动端显示虚拟方向键 */
+@media (max-width: 768px) {
+    .mobile-controls {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        order: 3;
+        gap: 10px;
+    }
+    
+    .d-toggle {
+        padding: 10px 20px;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border-color);
+        border-radius: 25px;
+        color: var(--text-primary);
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .d-toggle:active {
+        background: var(--accent-primary);
+        color: var(--bg-primary);
+    }
+    
+    .d-pad {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .d-middle {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .d-btn {
+        width: 60px;
+        height: 60px;
+        border: none;
+        border-radius: 12px;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+    }
+    
+    .d-btn:active {
+        background: var(--accent-primary);
+        color: var(--bg-primary);
+        transform: scale(0.95);
+    }
+    
+    .d-center {
+        background: var(--accent-secondary);
+        color: var(--bg-primary);
+        font-size: 1rem;
+    }
+    
+    .d-center:active {
+        background: var(--accent-primary);
+    }
+}
+
+/* 动画效果 */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px var(--accent-primary);
+    }
+    50% {
+        box-shadow: 0 0 20px var(--accent-primary), 0 0 30px var(--accent-primary);
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+.glow {
+    animation: glow 2s infinite;
+}
