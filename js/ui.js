@@ -280,7 +280,7 @@ const UI = {
     },
 
     // 更新玩家面板
-    // 排序规则：1.存活的按分数倒序 2.死亡的按死亡顺序（后死亡的在后）
+    // 排序规则：1.存活的按分数倒序 2.死亡的按分数倒序
     updatePlayerPanel(snakes) {
         const container = document.getElementById('players-list');
         if (!container) return;
@@ -294,8 +294,8 @@ const UI = {
         // 存活的按分数倒序排列
         aliveSnakes.sort((a, b) => b.score - a.score);
         
-        // 死亡的按死亡时间排序（后死亡的在后）
-        deadSnakes.sort((a, b) => (a.deathTime || 0) - (b.deathTime || 0));
+        // 死亡的也按分数倒序排列
+        deadSnakes.sort((a, b) => b.score - a.score);
         
         // 合并：存活的在前，死亡的在后
         const sortedSnakes = [...aliveSnakes, ...deadSnakes];
