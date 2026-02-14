@@ -5,29 +5,29 @@
 var GameConfig = {
     // 默认配置
     defaults: {
-        playerCount: 6,
+        playerCount: 12, // 玩家拉满
         initialGridSize: 30,
         minGridSize: 6,
         maxGridSize: 120,
         upgradeInterval: 15, // 秒
-        gameSpeed: 16, // 毫秒 (约60fps，x6速度)
-        speedLevel: 6, // 当前速度档位 x1-x10
+        gameSpeed: 100, // 毫秒 (最慢速度 x1)
+        speedLevel: 1, // 当前速度档位 x1 (最慢)
         minSpeedLevel: 1,
         maxSpeedLevel: 10,
         soundEnabled: true,
         players: [
             { id: 1, name: '玩家1', type: 'human', color: '#00ff88', controls: { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD' } },
             { id: 2, name: '玩家2', type: 'human', color: '#00d4ff', controls: { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' } },
-            { id: 3, name: '玩家3', type: 'ai', color: '#ffa502', controls: { up: 'KeyT', down: 'KeyG', left: 'KeyF', right: 'KeyH' } },
-            { id: 4, name: '玩家4', type: 'ai', color: '#ff6b81', controls: { up: 'KeyI', down: 'KeyK', left: 'KeyJ', right: 'KeyL' } },
-            { id: 5, name: '玩家5', type: 'ai', color: '#a55eea', controls: { up: 'Numpad8', down: 'Numpad5', left: 'Numpad4', right: 'Numpad6' } },
-            { id: 6, name: '玩家6', type: 'ai', color: '#26de81', controls: { up: 'Numpad7', down: 'Numpad1', left: 'Numpad9', right: 'Numpad3' } },
-            { id: 7, name: '玩家7', type: 'ai', color: '#fed330', controls: { up: 'Digit1', down: 'Digit2', left: 'Digit3', right: 'Digit4' } },
-            { id: 8, name: '玩家8', type: 'ai', color: '#45aaf2', controls: { up: 'Digit5', down: 'Digit6', left: 'Digit7', right: 'Digit8' } },
-            { id: 9, name: '玩家9', type: 'ai', color: '#fd79a8', controls: { up: 'Digit9', down: 'Digit0', left: 'Minus', right: 'Equal' } },
-            { id: 10, name: '玩家10', type: 'ai', color: '#00b894', controls: { up: 'BracketLeft', down: 'BracketRight', left: 'Backslash', right: 'Semicolon' } },
-            { id: 11, name: '玩家11', type: 'ai', color: '#e17055', controls: { up: 'Quote', down: 'Comma', left: 'Period', right: 'Slash' } },
-            { id: 12, name: '玩家12', type: 'ai', color: '#74b9ff', controls: { up: 'IntlBackslash', down: 'ContextMenu', left: 'BrowserBack', right: 'BrowserForward' } }
+            { id: 3, name: '玩家3', type: 'ai', color: '#ffa502', controls: { up: 'KeyT', down: 'KeyG', left: 'KeyF', right: 'KeyH' }, aiStrategy: 'survival' },
+            { id: 4, name: '玩家4', type: 'ai', color: '#ff6b81', controls: { up: 'KeyI', down: 'KeyK', left: 'KeyJ', right: 'KeyL' }, aiStrategy: 'length' },
+            { id: 5, name: '玩家5', type: 'ai', color: '#a55eea', controls: { up: 'Numpad8', down: 'Numpad5', left: 'Numpad4', right: 'Numpad6' }, aiStrategy: 'aggressive' },
+            { id: 6, name: '玩家6', type: 'ai', color: '#26de81', controls: { up: 'Numpad7', down: 'Numpad1', left: 'Numpad9', right: 'Numpad3' }, aiStrategy: 'item' },
+            { id: 7, name: '玩家7', type: 'ai', color: '#fed330', controls: { up: 'Digit1', down: 'Digit2', left: 'Digit3', right: 'Digit4' }, aiStrategy: 'survival' },
+            { id: 8, name: '玩家8', type: 'ai', color: '#45aaf2', controls: { up: 'Digit5', down: 'Digit6', left: 'Digit7', right: 'Digit8' }, aiStrategy: 'length' },
+            { id: 9, name: '玩家9', type: 'ai', color: '#fd79a8', controls: { up: 'Digit9', down: 'Digit0', left: 'Minus', right: 'Equal' }, aiStrategy: 'aggressive' },
+            { id: 10, name: '玩家10', type: 'ai', color: '#00b894', controls: { up: 'BracketLeft', down: 'BracketRight', left: 'Backslash', right: 'Semicolon' }, aiStrategy: 'item' },
+            { id: 11, name: '玩家11', type: 'ai', color: '#e17055', controls: { up: 'Quote', down: 'Comma', left: 'Period', right: 'Slash' }, aiStrategy: 'survival' },
+            { id: 12, name: '玩家12', type: 'ai', color: '#74b9ff', controls: { up: 'IntlBackslash', down: 'ContextMenu', left: 'BrowserBack', right: 'BrowserForward' }, aiStrategy: 'length' }
         ]
     },
 

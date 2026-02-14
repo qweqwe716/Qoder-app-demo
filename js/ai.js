@@ -12,6 +12,9 @@ class AIController {
         this.lastItemCount = 0; // 上次的道具数量
         this.forceTarget = null; // 强制获取的目标
         
+        // AI策略：survival(保命优先), length(长度优先), aggressive(进攻优先), item(道具优先)
+        this.strategy = snake.aiStrategy || this.randomStrategy();
+        
         // 步数统计（替代时间倒计时）
         this.stepsSinceLastGain = 0; // 自上次获得以来的步数
         this.stepsThreshold = this.randomStepsThreshold(); // 随机步数阈值 8~16步
@@ -20,6 +23,12 @@ class AIController {
         this.lastPositions = []; // 记录最近的位置
         this.maxPositionHistory = 4; // 记录最近4个位置
         this.circleDetectionCount = 0; // 检测到转圈的次数
+    }
+
+    // 随机分配AI策略
+    randomStrategy() {
+        const strategies = ['survival', 'length', 'aggressive', 'item'];
+        return strategies[Math.floor(Math.random() * strategies.length)];
     }
 
     // 生成随机步数阈值 8~16步
@@ -407,16 +416,19 @@ class AIController {
         // 强制获取模式下降低风险权重
         const riskWeight = isStagnant ? 1 : 5;
         
+        // 根据AI策略调整权重
+        const strategyWeights = this.getStrategyWeights();
+        
         return possibleMoves.map(move => {
             const newX = head.x + move.x;
             const newY = head.y + move.y;
             
             // 计算空间分数（可用格子数）
             const space = this.calculateSpace(newX, newY, 8);
-            const spaceScore = Math.min(space, 20) * 2; // 最高40分
+            const spaceScore = Math.min(space, 20) * 2 * strategyWeights.space; // 根据策略调整
             
             // 风险分数（强制获取模式下大幅降低风险权重）
-            const riskPenalty = move.risk * riskWeight;
+            const riskPenalty = move.risk * riskWeight * strategyWeights.risk;
             
             // 道具分数（强制获取模式下优先级大幅提高）
             let itemScore = 0;
@@ -427,8 +439,8 @@ class AIController {
                     let priority = 30;
                     if (nearestItem.type === 'revive') priority = 50;
                     if (nearestItem.type === 'penetrate') priority = 60;
-                    // 强制获取模式下道具优先级提高10倍
-                    itemScore = Math.max(0, priority * stagnationMultiplier - dist * 2);
+                    // 强制获取模式下道具优先级提高10倍，策略权重调整
+                    itemScore = Math.max(0, priority * stagnationMultiplier - dist * 2) * strategyWeights.item;
                 }
             }
             
@@ -438,14 +450,20 @@ class AIController {
                 const nearestFood = this.findNearest(newX, newY, foods);
                 if (nearestFood) {
                     const dist = Math.abs(newX - nearestFood.x) + Math.abs(newY - nearestFood.y);
-                    // 强制获取模式下食物优先级提高10倍
-                    foodScore = Math.max(0, 20 * stagnationMultiplier - dist * 2) + nearestFood.value * 2 * stagnationMultiplier;
+                    // 强制获取模式下食物优先级提高10倍，策略权重调整
+                    foodScore = (Math.max(0, 20 * stagnationMultiplier - dist * 2) + nearestFood.value * 2 * stagnationMultiplier) * strategyWeights.food;
                 }
+            }
+            
+            // 进攻分数（针对其他蛇的头部）
+            let attackScore = 0;
+            if (strategyWeights.attack > 0) {
+                attackScore = this.calculateAttackScore(newX, newY) * strategyWeights.attack;
             }
             
             // 综合得分
             // 强制获取模式下，道具和食物分数占主导，风险几乎不考虑
-            const score = spaceScore - riskPenalty + itemScore + foodScore;
+            const score = spaceScore - riskPenalty + itemScore + foodScore + attackScore;
             
             return {
                 ...move,
@@ -454,6 +472,39 @@ class AIController {
                 risk: move.risk
             };
         });
+    }
+
+    // 获取策略权重
+    getStrategyWeights() {
+        switch (this.strategy) {
+            case 'survival': // 保命优先：空间>风险>食物>道具>进攻
+                return { space: 3, risk: 3, food: 1, item: 0.5, attack: 0 };
+            case 'length': // 长度优先：食物>空间>风险>道具>进攻
+                return { space: 1.5, risk: 1, food: 3, item: 0.5, attack: 0 };
+            case 'aggressive': // 进攻优先：进攻>空间>风险>食物>道具
+                return { space: 1.5, risk: 0.5, food: 1, item: 0.5, attack: 3 };
+            case 'item': // 道具优先：道具>空间>风险>食物>进攻
+                return { space: 1.5, risk: 1, food: 0.5, item: 3, attack: 0 };
+            default: // 平衡策略
+                return { space: 2, risk: 2, food: 1, item: 1, attack: 0 };
+        }
+    }
+
+    // 计算进攻分数（针对其他蛇头部的威胁）
+    calculateAttackScore(x, y) {
+        let score = 0;
+        for (let snake of this.allSnakes) {
+            if (!snake.alive || snake === this.snake) continue;
+            
+            const otherHead = snake.getHead();
+            const dist = Math.abs(otherHead.x - x) + Math.abs(otherHead.y - y);
+            
+            // 距离其他蛇头部越近，进攻分数越高
+            if (dist <= 2) {
+                score += (3 - dist) * 10;
+            }
+        }
+        return score;
     }
 
     // 计算从某个位置出发的可用空间（使用BFS）
